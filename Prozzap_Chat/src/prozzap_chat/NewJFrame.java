@@ -5,6 +5,8 @@
  */
 package prozzap_chat;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,9 +20,13 @@ public class NewJFrame extends javax.swing.JFrame {
     /**
      * Creates new form NewJFrame
      */
+    InetAddress address;
     GestionePacchetto gestione;
-    public NewJFrame() {
+
+    public NewJFrame() throws SocketException {
         initComponents();
+        gestione = new GestionePacchetto();
+        gestione.start();
     }
 
     /**
@@ -40,6 +46,7 @@ public class NewJFrame extends javax.swing.JFrame {
         jTextFieldName = new javax.swing.JTextField();
         jTextFieldIP = new javax.swing.JTextField();
         jTextFieldMessage = new javax.swing.JTextField();
+        jButtonDisconnect = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -55,6 +62,18 @@ public class NewJFrame extends javax.swing.JFrame {
         });
 
         jButton2.setText("Send");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jButtonDisconnect.setText("Disconnect");
+        jButtonDisconnect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonDisconnectActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -78,7 +97,9 @@ public class NewJFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jButton1)
-                        .addGap(162, 162, 162))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonDisconnect)
+                        .addGap(83, 83, 83))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jTextFieldMessage)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -97,7 +118,9 @@ public class NewJFrame extends javax.swing.JFrame {
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButtonDisconnect))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -110,16 +133,38 @@ public class NewJFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
     //connect
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+
+        gestione.SetNome(jTextFieldMessage.getText());
         try {
-            gestione = new GestionePacchetto(jTextFieldName.getText());
-        } catch (SocketException ex) {
-            Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            if (gestione.ApriConnessione(jTextFieldIP.getText().trim())) {
+                address = InetAddress.getByName(jTextFieldIP.getText().trim());
+            }
+        } catch (IOException ex) {
+            System.out.println("IOException nell'apertura connessione. Errore: " + ex.getLocalizedMessage());
+        } catch (InterruptedException ex) {
+            System.out.println("InterruptedException nell'apertura connessione. Errore: " + ex.getLocalizedMessage());
         }
-        gestione.ApriConnessione(String ip);
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    //send
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        try {
+            // TODO add your handling code here:
+            if (!gestione.InviaMessaggio("m;" + jTextFieldMessage.getText(), address)) {
+                System.out.println("Non inviato");
+            }
+        } catch (IOException ex) {
+            System.out.println("IOException nell'invio messaggio in jButton2ActionPerformed(). Errore: " + ex.getLocalizedMessage());
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    //disconnect
+    private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
+        // TODO add your handling code here:
+        //Invia()
+    }//GEN-LAST:event_jButtonDisconnectActionPerformed
 
     /**
      * @param args the command line arguments
@@ -151,7 +196,11 @@ public class NewJFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new NewJFrame().setVisible(true);
+                try {
+                    new NewJFrame().setVisible(true);
+                } catch (SocketException ex) {
+                    System.out.println("SocketException nella creazione del frame nella run. Errore: " + ex.getLocalizedMessage());
+                }
             }
         });
     }
@@ -159,6 +208,7 @@ public class NewJFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButtonDisconnect;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane2;
