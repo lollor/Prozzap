@@ -155,7 +155,7 @@ public class NewJFrame extends javax.swing.JFrame{
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         try {
             // TODO add your handling code here:
-            if (!gestione.InviaMessaggio("m;" + jTextFieldMessage.getText(), address)) {
+            if (!gestione.InviaMessaggio("m;" + jTextFieldMessage.getText(), gestione.IPaddress)) {
                 System.out.println("Non inviato");
             }
         } catch (IOException ex) {
@@ -178,7 +178,8 @@ public class NewJFrame extends javax.swing.JFrame{
         messaggiRicevuti++;
         JLabel labelTemp = jLabel1;
         labelTemp.setText(messaggio.substring(messaggio.indexOf(";")));
-        labelTemp.setAlignmentX(TOP_ALIGNMENT);
+        labelTemp.setAlignmentX(10);
+        labelTemp.setAlignmentY(messaggiRicevuti*20);
         jScrollPane2.add(labelTemp);
     }
     

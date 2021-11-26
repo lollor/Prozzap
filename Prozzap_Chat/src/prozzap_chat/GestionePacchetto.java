@@ -26,6 +26,7 @@ public class GestionePacchetto extends Thread {
 
     String nomeMittente, mioNome;
     DatagramSocket socketRicezione, socketInvio;
+    InetAddress IPaddress;
     boolean connesso;
     int fase;
 
@@ -74,7 +75,11 @@ public class GestionePacchetto extends Thread {
                     if (JOptionPane.showConfirmDialog(null, resto.split(";")[0] + " (" + address + ") ha chiesto di connettersi. Accettare?", "Richiesta", JOptionPane.YES_NO_OPTION) == 0) {
                         mioNome = JOptionPane.showInputDialog("Inserire nome");
                         nomeMittente = resto.split(";")[0];
-                        Invia("y;" + mioNome + ";", address);
+                        IPaddress = address;
+                        Invia("y;" + mioNome + ";", IPaddress);
+                        connesso = true;
+                        System.out.println("Mi sono connesso a "+nomeMittente);
+                        
                         return "OK,apertura permessa";
                     } else {
                         Invia("n;", address);
@@ -169,6 +174,7 @@ public class GestionePacchetto extends Thread {
         fase = 3;
         Invia("y;", indirizzo);
         connesso = true;
+        System.out.println("Sono connesso a "+nomeMittente);
         return true;
     }
 
@@ -185,7 +191,7 @@ public class GestionePacchetto extends Thread {
     }
     
     public boolean InviaMessaggio(String messaggio, InetAddress address) throws IOException{
-        if (!(mioNome.equals(Character.toString((char)0)))){
+        if ((mioNome.equals(Character.toString((char)0)))){
             return false;
         }
         Invia(messaggio, address);
