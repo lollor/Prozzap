@@ -5,17 +5,20 @@
  */
 package prozzap_chat;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 
 /**
  *
  * @author Lorenzo
  */
-public class NewJFrame extends javax.swing.JFrame {
+public class NewJFrame extends javax.swing.JFrame{
 
     /**
      * Creates new form NewJFrame
@@ -25,7 +28,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
     public NewJFrame() throws SocketException {
         initComponents();
-        gestione = new GestionePacchetto();
+        gestione = new GestionePacchetto(this);
         gestione.start();
     }
 
@@ -162,10 +165,23 @@ public class NewJFrame extends javax.swing.JFrame {
 
     //disconnect
     private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
-        // TODO add your handling code here:
-        //Invia()
+        try {
+            // TODO add your handling code here:
+            gestione.ChiudiConnessione(address);
+        } catch (IOException ex) {
+            Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButtonDisconnectActionPerformed
 
+    private int messaggiRicevuti = 0;
+    public void MessaggioRicevuto(String messaggio){
+        messaggiRicevuti++;
+        JLabel labelTemp = jLabel1;
+        labelTemp.setText(messaggio.substring(messaggio.indexOf(";")));
+        labelTemp.setAlignmentX(TOP_ALIGNMENT);
+        jScrollPane2.add(labelTemp);
+    }
+    
     /**
      * @param args the command line arguments
      */

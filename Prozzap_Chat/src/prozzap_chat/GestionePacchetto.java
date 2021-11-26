@@ -5,6 +5,8 @@
  */
 package prozzap_chat;
 
+import java.awt.List;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -27,16 +29,20 @@ public class GestionePacchetto extends Thread {
     boolean connesso;
     int fase;
 
-    public GestionePacchetto() throws SocketException {
+    ActionEvent eventoMessaggio;
+    
+    public GestionePacchetto(NewJFrame listener) throws SocketException {
         this.mioNome = Character.toString((char)0);
         this.socketRicezione = new DatagramSocket(12345);
         this.socketInvio = new DatagramSocket();
         fase = 1;
         connesso = false;
     }
+    
     public void SetNome(String nome){
         this.mioNome = nome;
     }
+    
     @Override
     public void run() {
         while (true) {
@@ -90,6 +96,7 @@ public class GestionePacchetto extends Thread {
                 return "NOTOK, mi hanno rifiutato";
             case 'm':
                 if (connesso) {
+                    new Thread(()->{frame.MessaggioRicevuto("MESSAGGIO," + resto);}).start();
                     return "MESSAGGIO," + resto;
                 } else {
                     Invia("c;", address);
@@ -176,6 +183,7 @@ public class GestionePacchetto extends Thread {
             return false;
         }
     }
+    
     public boolean InviaMessaggio(String messaggio, InetAddress address) throws IOException{
         if (!(mioNome.equals(Character.toString((char)0)))){
             return false;
@@ -183,4 +191,13 @@ public class GestionePacchetto extends Thread {
         Invia(messaggio, address);
         return true;
     }
+    
+    public boolean ChiudiConnessione(InetAddress address) throws IOException{
+        Invia("c;", address);
+        connesso = false;
+        fase = 0;
+        return true;
+    }
+    
+    private NewJFrame frame;
 }
