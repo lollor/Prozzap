@@ -31,19 +31,20 @@ public class GestionePacchetto extends Thread {
     int fase;
 
     ActionEvent eventoMessaggio;
-    
+
     public GestionePacchetto(NewJFrame listener) throws SocketException {
-        this.mioNome = Character.toString((char)0);
+        this.mioNome = Character.toString((char) 0);
         this.socketRicezione = new DatagramSocket(12345);
         this.socketInvio = new DatagramSocket();
         fase = 1;
         connesso = false;
+        this.frame = listener;
     }
-    
-    public void SetNome(String nome){
+
+    public void SetNome(String nome) {
         this.mioNome = nome;
     }
-    
+
     @Override
     public void run() {
         while (true) {
@@ -56,16 +57,15 @@ public class GestionePacchetto extends Thread {
             }
             new Thread(() -> {
                 try {
-                    controlloPaccketto(new String(p.getData()).trim(), p.getAddress(), true);
+                    controlloPaccketto(new String(p.getData()).trim(), p.getAddress());
                 } catch (IOException ex) {
                     System.out.println("Eccezione controllo pacchetto nella thread interno della run della classe GestionePacchetto.\nErrore: " + ex.getLocalizedMessage());
                 }
             }).start();
         }
     }
-
-    private String controlloPaccketto(String info, InetAddress address, boolean sendPacket) throws IOException {
-        System.out.println(info + " - " + address);
+    private String controlloPaccketto(String info, InetAddress address) throws IOException {
+        System.out.println("IN [" + info + "] [" + address + "]");
         char tipoRichiesta = info.charAt(0);
         String resto = info.substring(info.indexOf(";") + 1);
         String risposta = "";
@@ -78,8 +78,7 @@ public class GestionePacchetto extends Thread {
                         IPaddress = address;
                         Invia("y;" + mioNome + ";", IPaddress);
                         connesso = true;
-                        System.out.println("Mi sono connesso a "+nomeMittente);
-                        
+
                         return "OK,apertura permessa";
                     } else {
                         Invia("n;", address);
@@ -89,8 +88,13 @@ public class GestionePacchetto extends Thread {
                 }
                 return "NOTOK,apertura non permessa";
             case 'y':
+                if (connesso) {
+                    System.out.println("Mi sono connesso a " + nomeMittente);
+                    return "OK,sono connesso";
+                }
                 if (fase == 2 && !connesso) {
                     nomeMittente = resto.split(";")[0];
+                    flag = true;
                     return "OK,connessione accettata";
                 } else {
                     Invia("n;", address);
@@ -101,7 +105,9 @@ public class GestionePacchetto extends Thread {
                 return "NOTOK, mi hanno rifiutato";
             case 'm':
                 if (connesso) {
-                    new Thread(()->{frame.MessaggioRicevuto("MESSAGGIO," + resto);}).start();
+                    new Thread(() -> {
+                        frame.MessaggioRicevuto("MESSAGGIO," + resto);
+                    }).start();
                     return "MESSAGGIO," + resto;
                 } else {
                     Invia("c;", address);
@@ -118,63 +124,30 @@ public class GestionePacchetto extends Thread {
                 throw new AssertionError();
         }
     }
-
+    //rimettere 12345
     public void Invia(String info, InetAddress address) throws IOException {
+        System.out.println("OUT [" + info + "] [" + address + "]");
         byte[] bufRisposta = info.getBytes();
-        socketInvio.send(new DatagramPacket(bufRisposta, bufRisposta.length, address, 12345));
+        socketInvio.send(new DatagramPacket(bufRisposta, bufRisposta.length, address, 12346));
     }
+
+    boolean flag = false;
 
     public boolean ApriConnessione(String ip) throws UnknownHostException, IOException, InterruptedException {
         InetAddress indirizzo = InetAddress.getByName(ip);
         Invia("a;" + mioNome + ";", indirizzo);
         fase = 2;
-        //boolean flag = false;
-        Thread ricevimentoPacchetto = new Thread(() -> {
-            byte[] buf = new byte[1500];
-            DatagramPacket p = new DatagramPacket(buf, buf.length);
-            try {
-                socketRicezione.setSoTimeout(5000);
-            } catch (SocketException ex) {
-                System.out.println("Eccezione socketRicezione.setSoTimeout(5000) nel thread dentro ApriConnessione(String ip).\nErrore: " + ex.getLocalizedMessage());
-            }
-            try {
-                socketRicezione.receive(p);
-            } catch (SocketTimeoutException ex) {
-                fase = 1;
-                try {
-                    socketRicezione.setSoTimeout(0);
-                } catch (SocketException ex1) {
-                    System.out.println("Eccezione 1° socketRicezione.setSoTimeout(0) nel thread dentro ApriConnessione(String ip).\nErrore: " + ex1.getLocalizedMessage());
-                }
-                return;
-            } catch (IOException ex) {
-                System.out.println("Eccezione socketRicezione.receive(p) nel thread dentro ApriConnessione(String ip).\nErrore: " + ex.getLocalizedMessage());
-            }
-            try {
-                socketRicezione.setSoTimeout(0);
-            } catch (SocketException ex) {
-                System.out.println("Eccezione 2° socketRicezione.setSoTimeout(0) nel thread dentro ApriConnessione(String ip).\nErrore: " + ex.getLocalizedMessage());
-            }
-            try {
-                if (controlloPaccketto(new String(p.getData()).trim(), null, false).equals("OK,connessione accettata")) {
-                    return;
-                } else {
-                    fase = 1;
-                    return;
-                }
-            } catch (IOException ex) {
-                System.out.println("Eccezione controllo pacchetto nella thread ricevimentoPacchetto dentro ApriConnessione(String ip).\nErrore: " + ex.getLocalizedMessage());
-            }
-        });
-        ricevimentoPacchetto.start();
-        ricevimentoPacchetto.join();
+        while (!flag){
+            System.out.println("Errore: non arriva paccheto y;");
+        }
         if (fase == 1) {
             return false;
         }
         fase = 3;
         Invia("y;", indirizzo);
         connesso = true;
-        System.out.println("Sono connesso a "+nomeMittente);
+        IPaddress = indirizzo;
+        System.out.println("Sono connesso a " + nomeMittente);
         return true;
     }
 
@@ -183,27 +156,27 @@ public class GestionePacchetto extends Thread {
             fase = 1;
             connesso = false;
             System.out.println("Sto chiudendo connessione");
-            Invia("c;",address);
+            Invia("c;", address);
             return true;
         } else {
             return false;
         }
     }
-    
-    public boolean InviaMessaggio(String messaggio, InetAddress address) throws IOException{
-        if ((mioNome.equals(Character.toString((char)0)))){
+
+    public boolean InviaMessaggio(String messaggio, InetAddress address) throws IOException {
+        if ((mioNome.equals(Character.toString((char) 0)))) {
             return false;
         }
         Invia(messaggio, address);
         return true;
     }
-    
-    public boolean ChiudiConnessione(InetAddress address) throws IOException{
+
+    public boolean ChiudiConnessione(InetAddress address) throws IOException {
         Invia("c;", address);
         connesso = false;
         fase = 0;
         return true;
     }
-    
+
     private NewJFrame frame;
 }

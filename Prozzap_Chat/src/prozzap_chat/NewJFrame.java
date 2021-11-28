@@ -5,6 +5,7 @@
  */
 package prozzap_chat;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -12,13 +13,15 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.border.Border;
 
 /**
  *
  * @author Lorenzo
  */
-public class NewJFrame extends javax.swing.JFrame{
+public class NewJFrame extends javax.swing.JFrame {
 
     /**
      * Creates new form NewJFrame
@@ -30,6 +33,9 @@ public class NewJFrame extends javax.swing.JFrame{
         initComponents();
         gestione = new GestionePacchetto(this);
         gestione.start();
+        new Thread(()->{try {controlloConnessione();} catch (InterruptedException ex) {System.out.println("Errore nel controllo connessione (NewJFrame)");}}).start();
+        //CreaLabel("ciao",true);
+        //CreaLabel("pippo",true);
     }
 
     /**
@@ -42,10 +48,11 @@ public class NewJFrame extends javax.swing.JFrame{
     private void initComponents() {
 
         jScrollPane2 = new javax.swing.JScrollPane();
+        jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jButtonConnect = new javax.swing.JButton();
+        jButtonSend = new javax.swing.JButton();
         jTextFieldName = new javax.swing.JTextField();
         jTextFieldIP = new javax.swing.JTextField();
         jTextFieldMessage = new javax.swing.JTextField();
@@ -53,21 +60,36 @@ public class NewJFrame extends javax.swing.JFrame{
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 381, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 230, Short.MAX_VALUE)
+        );
+
+        jScrollPane2.setViewportView(jPanel1);
+
         jLabel1.setText("ENTER YOUR NAME");
 
         jLabel2.setText("ENTER DESTINATION IP");
 
-        jButton1.setText("Connect");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButtonConnect.setText("Connect");
+        jButtonConnect.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButtonConnectActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Send");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        jButtonSend.setText("Send");
+        jButtonSend.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jButtonSendActionPerformed(evt);
             }
         });
 
@@ -96,17 +118,17 @@ public class NewJFrame extends javax.swing.JFrame{
                                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jTextFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 22, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton1)
+                        .addComponent(jButtonConnect)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonDisconnect)
                         .addGap(83, 83, 83))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jTextFieldMessage)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jButtonSend, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -122,13 +144,13 @@ public class NewJFrame extends javax.swing.JFrame{
                     .addComponent(jTextFieldIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
+                    .addComponent(jButtonConnect)
                     .addComponent(jButtonDisconnect))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
+                    .addComponent(jButtonSend)
                     .addComponent(jTextFieldMessage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(11, 11, 11))
         );
@@ -136,10 +158,32 @@ public class NewJFrame extends javax.swing.JFrame{
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void controlloConnessione() throws InterruptedException{
+        while (true) {
+            Thread.sleep(50);
+            if (!gestione.connesso){
+                jButtonConnect.setEnabled(true);
+                jTextFieldIP.setEnabled(true);
+                jTextFieldName.setEnabled(true);
+                jButtonDisconnect.setEnabled(false);
+                jTextFieldMessage.setEnabled(false);
+                jButtonSend.setEnabled(false);
+            } else {
+                jButtonConnect.setEnabled(false);
+                jTextFieldIP.setEnabled(false);
+                jTextFieldName.setEnabled(false);
+                jButtonDisconnect.setEnabled(true);
+                jTextFieldMessage.setEnabled(true);
+                jButtonSend.setEnabled(true);
+            }
+            this.repaint();
+        }
+    }
+    
     //connect
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
 
-        gestione.SetNome(jTextFieldMessage.getText());
+        gestione.SetNome(jTextFieldName.getText());
         try {
             if (gestione.ApriConnessione(jTextFieldIP.getText().trim())) {
                 address = InetAddress.getByName(jTextFieldIP.getText().trim());
@@ -149,19 +193,21 @@ public class NewJFrame extends javax.swing.JFrame{
         } catch (InterruptedException ex) {
             System.out.println("InterruptedException nell'apertura connessione. Errore: " + ex.getLocalizedMessage());
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jButtonConnectActionPerformed
 
     //send
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
         try {
             // TODO add your handling code here:
             if (!gestione.InviaMessaggio("m;" + jTextFieldMessage.getText(), gestione.IPaddress)) {
                 System.out.println("Non inviato");
+            } else {
+                CreaLabel(jTextFieldMessage.getText(), false);
             }
         } catch (IOException ex) {
             System.out.println("IOException nell'invio messaggio in jButton2ActionPerformed(). Errore: " + ex.getLocalizedMessage());
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_jButtonSendActionPerformed
 
     //disconnect
     private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
@@ -173,16 +219,31 @@ public class NewJFrame extends javax.swing.JFrame{
         }
     }//GEN-LAST:event_jButtonDisconnectActionPerformed
 
-    private int messaggiRicevuti = 0;
-    public void MessaggioRicevuto(String messaggio){
-        messaggiRicevuti++;
-        JLabel labelTemp = jLabel1;
-        labelTemp.setText(messaggio.substring(messaggio.indexOf(";")));
-        labelTemp.setAlignmentX(10);
-        labelTemp.setAlignmentY(messaggiRicevuti*20);
-        jScrollPane2.add(labelTemp);
+    private int messaggi = 0;
+
+    public void MessaggioRicevuto(String messaggio) {
+        CreaLabel(messaggio.substring(messaggio.indexOf(",") + 1), true);
     }
-    
+
+    private void CreaLabel(String text, boolean isLefty) {
+        messaggi++;
+        JLabel labelTemp;
+        labelTemp = new JLabel(text, JLabel.LEFT);
+        labelTemp.setSize(8*text.length(), 20);
+        labelTemp.setBorder(BorderFactory.createLineBorder(Color.black));
+        if (isLefty) {
+            labelTemp.setLocation(10, messaggi * 20);
+            labelTemp.setBackground(Color.white);
+        } else {
+            labelTemp.setLocation(jPanel1.getWidth()-labelTemp.getWidth()-10, messaggi * 20);
+            labelTemp.setBackground(new Color(4,82,0));
+            labelTemp.setForeground(Color.white);
+        }
+        labelTemp.setOpaque(true);
+        jPanel1.add(labelTemp);
+        this.repaint();
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -223,11 +284,12 @@ public class NewJFrame extends javax.swing.JFrame{
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButtonConnect;
     private javax.swing.JButton jButtonDisconnect;
+    private javax.swing.JButton jButtonSend;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField jTextFieldIP;
     private javax.swing.JTextField jTextFieldMessage;
