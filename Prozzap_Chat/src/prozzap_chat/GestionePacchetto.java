@@ -16,6 +16,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Icon;
 import javax.swing.JOptionPane;
 
 /**
@@ -90,6 +91,7 @@ public class GestionePacchetto extends Thread {
             case 'y':
                 if (connesso) {
                     System.out.println("Mi sono connesso a " + nomeMittente);
+                    JOptionPane.showMessageDialog(null, "Sono connesso a " + nomeMittente, "Connessione effettuata.", JOptionPane.INFORMATION_MESSAGE);
                     return "OK,sono connesso";
                 }
                 if (fase == 2 && !connesso) {
@@ -128,7 +130,7 @@ public class GestionePacchetto extends Thread {
     public void Invia(String info, InetAddress address) throws IOException {
         System.out.println("OUT [" + info + "] [" + address + "]");
         byte[] bufRisposta = info.getBytes();
-        socketInvio.send(new DatagramPacket(bufRisposta, bufRisposta.length, address, 12346));
+        socketInvio.send(new DatagramPacket(bufRisposta, bufRisposta.length, address, 12345));
     }
 
     boolean flag = false;
@@ -148,6 +150,7 @@ public class GestionePacchetto extends Thread {
         connesso = true;
         IPaddress = indirizzo;
         System.out.println("Sono connesso a " + nomeMittente);
+        JOptionPane.showMessageDialog(null, "Sono connesso a " + nomeMittente, "Connessione effettuata.", JOptionPane.INFORMATION_MESSAGE);
         return true;
     }
 

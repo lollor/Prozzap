@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.border.Border;
 
 /**
@@ -26,7 +27,7 @@ public class NewJFrame extends javax.swing.JFrame {
     /**
      * Creates new form NewJFrame
      */
-    InetAddress address;
+    //InetAddress address;
     GestionePacchetto gestione;
 
     public NewJFrame() throws SocketException {
@@ -59,6 +60,12 @@ public class NewJFrame extends javax.swing.JFrame {
         jButtonDisconnect = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Prozzap");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -183,10 +190,19 @@ public class NewJFrame extends javax.swing.JFrame {
     //connect
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
 
+        if (jTextFieldName.getText().trim().equals("")){
+            JOptionPane.showMessageDialog(this, "Inserire nome.", "Attenzione", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (jTextFieldIP.getText().trim().equals("")){
+            JOptionPane.showMessageDialog(this, "Inserire indirizzo IP.", "Attenzione", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         gestione.SetNome(jTextFieldName.getText());
         try {
-            if (gestione.ApriConnessione(jTextFieldIP.getText().trim())) {
-                address = InetAddress.getByName(jTextFieldIP.getText().trim());
+            if (!gestione.ApriConnessione(jTextFieldIP.getText().trim())) {
+                //address = InetAddress.getByName(jTextFieldIP.getText().trim());
+                System.out.println("Non sono riuscito ad aprire la connessione");
             }
         } catch (IOException ex) {
             System.out.println("IOException nell'apertura connessione. Errore: " + ex.getLocalizedMessage());
@@ -213,11 +229,16 @@ public class NewJFrame extends javax.swing.JFrame {
     private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
         try {
             // TODO add your handling code here:
-            gestione.ChiudiConnessione(address);
+            gestione.ChiudiConnessione(gestione.IPaddress);
         } catch (IOException ex) {
             Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonDisconnectActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        jButtonDisconnectActionPerformed(null);
+    }//GEN-LAST:event_formWindowClosing
 
     private int messaggi = 0;
 
