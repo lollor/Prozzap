@@ -215,6 +215,8 @@ public class NewJFrame extends javax.swing.JFrame {
     private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
         try {
             // TODO add your handling code here:
+            if (jTextFieldMessage.getText().trim().equals(""))
+                return;
             if (!gestione.InviaMessaggio("m;" + jTextFieldMessage.getText(), gestione.IPaddress)) {
                 System.out.println("Non inviato");
             } else {
@@ -229,10 +231,15 @@ public class NewJFrame extends javax.swing.JFrame {
     private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
         try {
             // TODO add your handling code here:
+            if (gestione.IPaddress != null)
             gestione.ChiudiConnessione(gestione.IPaddress);
         } catch (IOException ex) {
             Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+        jPanel1.removeAll();
+        jPanel1.revalidate();
+        messaggi=0;
+        repaint();
     }//GEN-LAST:event_jButtonDisconnectActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing

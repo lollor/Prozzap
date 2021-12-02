@@ -104,6 +104,7 @@ public class GestionePacchetto extends Thread {
                 }
             case 'n':
                 connesso = false;
+                fase = 1;
                 return "NOTOK, mi hanno rifiutato";
             case 'm':
                 if (connesso) {
@@ -139,8 +140,16 @@ public class GestionePacchetto extends Thread {
         InetAddress indirizzo = InetAddress.getByName(ip);
         Invia("a;" + mioNome + ";", indirizzo);
         fase = 2;
+        long time = System.currentTimeMillis();
         while (!flag){
-            System.out.println("Errore: non arriva paccheto y;");
+            if ((System.currentTimeMillis() - time) > 15000 && !connesso && fase == 2){
+                connesso = false;
+                fase = 1;
+                flag = false;
+                JOptionPane.showConfirmDialog(null, "Richiesta scaduta.", "Errore",JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE );
+                return false;
+            }
+            System.out.print("");
         }
         if (fase == 1) {
             return false;
@@ -177,7 +186,7 @@ public class GestionePacchetto extends Thread {
     public boolean ChiudiConnessione(InetAddress address) throws IOException {
         Invia("c;", address);
         connesso = false;
-        fase = 0;
+        fase = 1;
         return true;
     }
 
